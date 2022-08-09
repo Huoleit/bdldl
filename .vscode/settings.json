@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "ldl.h": "c",
+    "blasfeo.h": "c",
+    "ldl_types.h": "c"
+  }
+}

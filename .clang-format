@@ -1,0 +1,5 @@
+Language: Cpp
+BasedOnStyle: Google
+PointerAlignment: Right
+IncludeBlocks: Preserve
+ColumnLimit: 92
