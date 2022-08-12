@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "sparseLDL/ldl_types.h"
+#include "sparseLDL/sparseLDL_types.h"
 
 #ifdef __cplusplus
 extern "C" {
