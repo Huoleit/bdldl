@@ -2,6 +2,8 @@
 
 #include <blasfeo.h>
 
+typedef char ldl_bool;
+
 #cmakedefine SPARSE_LDL_USE_SINGLE_PRECISION
 
 #if defined(SPARSE_LDL_USE_SINGLE_PRECISION)

@@ -1,172 +1,181 @@
+/**
+ * @file sparseLDL.h
+ * @author Fu Zhengyu (zhengfuaj@gmail.com)
+ * @brief
+ * @version 0.1
+ * @date 2022-08-14
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
 #pragma once
 
 #include <stddef.h>
 
+#include "sparseLDL/sparseLDL_forward_declaration.h"
 #include "sparseLDL/sparseLDL_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct qp_size {
-  int *nx;  // number of states
-  int *nu;  // number of inputs
-  int *ng;  // number of constraints
-  int N;    // horizon length
-  size_t memsize;
-};
-
-struct qp_data {
-  // Dynamics
-  ldl_matrix *A;
-  ldl_matrix *B;
-  ldl_matrix *C;
-  ldl_matrix *D;
-
-  // Cost
-  ldl_matrix *Q;
-  ldl_matrix *R;
-  ldl_matrix *H;
-  ldl_vector *q;
-  ldl_vector *r;
-
-  // Constraints
-  ldl_matrix *E;
-  ldl_matrix *F;
-  ldl_vector *g;
-
-  size_t memsize;
-};
-
-struct ldl_workspace {
-  ldl_matrix *L;
-  ldl_matrix *D;
-  ldl_matrix *DInv;
-
-  size_t memsize;
-};
-
 /////////////////////////////////////////////
-// Problem size
+// Factorization & Solve
 /////////////////////////////////////////////
 
 /**
- * Get the size of the memory required to store the problem size
+ * @brief Factorize the KKT matrix
  *
- * @param N horizon length
- * @return size_t size of memory required
+ * @param[in, out] solver Pointer to the solver
+ * @param[in] primal_regularization Regularization for the primal variables
+ * @param[in] dual_regularization Regularization for the dual variables
  */
-size_t qp_size_getRequiredMemorySize(const int N);
+void sparseLDL_factor(struct ldl_Solver *solver, const ldl_float primal_regularization,
+                      const ldl_float dual_regularization);
 
 /**
- * Map the problem size struct to pre-allocated memory
+ * @brief Solve the KKT system (destructive)
  *
- * @param N horizon length
- * @param dim problem size struct storing the size information of every time step
- * @param memory pointer to pre-allocated memory
+ * @param[in] solver Pointer to the solver
+ * @param[in, out] b Vector to solve for. The solution is stored in this vector.
  */
-void qp_size_mapToMemory(const int N, struct qp_size *dim, void *memory);
-
-/**
- * Initialize the problem size struct
- *
- * @param nx number of states
- * @param nu number of inputs
- * @param ng number of constraints
- * @param dim problem size struct storing the size information of every time step
- */
-void qp_size_setAll(const int *nx, const int *nu, const int *ng, struct qp_size *dim);
-
-/////////////////////////////////////////////
-// Problem data
-/////////////////////////////////////////////
-
-/**
- * Get the size of the memory required to store the problem data
- *
- * @param dim problem size struct storing the size information of every time step
- * @return size_t
- */
-size_t qp_data_getRequiredMemorySize(const struct qp_size *dim);
-
-/**
- * Map the problem data struct to pre-allocated memory
- *
- * @param data problem data struct storing the data of every time step
- * @param memory pointer to pre-allocated memory
- */
-void qp_data_mapToMemory(struct qp_data *data, void *memory);
-
-/**
- * Initialize the problem data struct
- *
- * @param A dynamics matrix A
- * @param B dynamics matrix B
- * @param C dynamics matrix C
- * @param D dynamics matrix D
- * @param Q cost matrix Q
- * @param R cost matrix R
- * @param H cost matrix H
- * @param q cost vector q
- * @param r cost vector r
- * @param E constraints matrix E
- * @param F constraints matrix F
- * @param g constraints vector g
- * @param dim problem size struct storing the size information of every time step
- * @param data problem data struct storing the data of every time step
- */
-void qp_data_setAll(const ldl_float *A, const ldl_float *B, const ldl_float *C,
-                    const ldl_float *D, const ldl_float *Q, const ldl_float *R,
-                    const ldl_float *H, const ldl_float *q, const ldl_float *r,
-                    const ldl_float *E, const ldl_float *F, const ldl_float *g,
-                    const struct qp_size *dim, struct qp_data *data);
-
-/////////////////////////////////////////////
-// factorization
-/////////////////////////////////////////////
-
-/**
- * Get the size of the memory required to store the factorization workspace
- *
- * @param dim
- * @return size_t
- */
-size_t sparseLDL_getRequiredMemorySize(const struct qp_size *dim);
-
-/**
- * Map the factorization workspace to pre-allocated memory
- *
- * @param workspace
- * @param memory
- */
-void sparseLDL_mapToMemory(struct ldl_workspace *ws, void *memory);
-
-/**
- * Factorize the KKT matrix
- *
- * @param dim problem size struct storing the size information of every time step
- * @param data problem data struct storing the data of every time step
- * @param workspace factorization workspace
- */
-void sparseLDL_factor(const struct qp_data *data, struct ldl_workspace *ws);
-
-/**
- * Solve the KKT system in place
- *
- * @param workspace factorization workspace containing the factorization
- * @param b solution vector
- */
-void sparseLDL_solveInPlace(const struct ldl_workspace *ws, ldl_vector *b);
+void sparseLDL_solveInPlace(const struct ldl_Solver *solver, ldl_vector *b);
 
 /**
  * Solve the KKT system (non destructive)
  *
- * @param ws factorization workspace containing the factorization
- * @param b RHS vector
- * @param result solution vector
+ * @param[in] solver Pointer to the solver
+ * @param[in] b Vector to solve fo
+ * @param[out] result solution vector
  */
-void sparseLDL_solve(const struct ldl_workspace *ws, const ldl_vector *b,
+void sparseLDL_solve(const struct ldl_Solver *solver, const ldl_vector *b,
                      ldl_vector *result);
+
+/////////////////////////////////////////////
+// sparseLDL solver
+/////////////////////////////////////////////
+
+/**
+ * Get required memory size for the solver
+ *
+ * @param[in] num_states State dimension of every stage. Size `N + 1`
+ * @param[in] num_inputs State dimension of every stage. Size `N + 1`
+ * @param[in] num_constraints Constraint dimension of every stage. Size `N + 1`
+ * @param[in] num_horizon Horizon length `N`
+ * @param[in] use_diagonal_costs Use diagonal costs. If true, only memory for diagonal
+ * entries is allocated; otherwise, memory for dense Q and R matrices is allocated.
+ * @return size_t Required memory size
+ */
+size_t sparseLDL_getRequiredMemorySize(const int *num_states, const int *num_inputs,
+                                       const int *num_constraints, int num_horizon,
+                                       ldl_bool use_diagonal_costs);
+
+/**
+ * (Allocate &) map the solver.
+ *
+ * @param[in] num_states State dimension of every stage. Size `N + 1`
+ * @param[in] num_inputs State dimension of every stage. Size `N + 1`
+ * @param[in] num_constraints Constraint dimension of every stage. Size `N + 1`
+ * @param[in] num_horizon Horizon length `N`
+ * @param[in] use_diagonal_costs Use diagonal costs. If true, only memory for diagonal
+ * entries is allocated; otherwise, memory for dense Q and R matrices is allocated.
+ * @param[in] memory If NULL, required memory is allocated internally. User should call
+ * \ref sparseLDL_freeSolver to free the allocated memory explicitly. If a valid memory
+ * address, solver is mapped to this pre-allocated memory space. Users should manage the
+ * memory on their own.
+ * @return struct ldl_Solver* Pointer to the solver
+ *
+ */
+struct ldl_Solver *sparseLDL_newSolver(const int *num_states, const int *num_inputs,
+                                       const int *num_constraints, int num_horizon,
+                                       ldl_bool use_diagonal_costs, void *memory);
+
+/**
+ * Release the memory allocated by the solver and NULL all internal pointers.
+ *
+ * @param[in] solver Pointer to the solver
+ */
+void sparseLDL_freeSolver(struct ldl_Solver *solver);
+
+/////////////////////////////////////////////
+// Costs setters
+/////////////////////////////////////////////
+
+/**
+ * @brief Set the quadratic and affine cost terms on the state for a single time step.
+ *
+ * @param[in] solver Pointer to the solver
+ * @param[in] Q Quadratic state cost. Size is determined by whether the costs are dense or
+ * diagonal. If NULL, no quadratic cost is set and the corresponding memory remains
+ * unchanged.
+ * @param[in] q Linear state cost. Size `num_states[k]`. If NULL, no
+ * linear state cost is set and the corresponding memory remains unchanged.
+ * @param[in] k Time step at which to set the cost.
+ */
+void sparseLDL_setStateCosts(struct ldl_Solver *solver, const ldl_float *Q,
+                             const ldl_float *q, int k);
+
+/**
+ * @brief Set the quadratic and affine cost terms on the input for a single time step.
+ *
+ * @param[in] solver Pointer to the solver
+ * @param[in] R Quadratic input cost. Size is determined by whether the costs are dense or
+ * diagonal. If NULL, no quadratic cost is set and the corresponding memory remains
+ * unchanged.
+ * @param[in] r Linear input cost. Size `num_inputs[k]`. If NULL, no linear input cost is
+ * set and the corresponding memory remains unchanged.
+ * @param[in] k Time step at which to set the cost.
+ */
+void sparseLDL_setInputCosts(struct ldl_Solver *solver, const ldl_float *R,
+                             const ldl_float *r, int k);
+
+/**
+ * @brief Set the cross-term cost between the states and inputs.
+ *
+ * @param[in] solver Pointer to the solver
+ * @param[in] H Cross-term cost. Size `(num_inputs[k], num_states[k])`.
+ * @param[in] k Time step at which to set the cost.
+ */
+void sparseLDL_setStateInputCosts(struct ldl_Solver *solver, const ldl_float *Hux, int k);
+
+/////////////////////////////////////////////
+// Dynamics setters
+/////////////////////////////////////////////
+
+/**
+ * @brief Set the dynamics at a given time step
+ *
+ * @param[in]  solver Pointer to the solver
+ * @param[in]  A State transition matrix. Size `(num_states[k+1], num_states[k])`. If NULL,
+ * A is not set and the corresponding memory remains unchanged.
+ * @param[in]  B Input matrix. Size `(num_states[k+1], num_inputs[k])`. If NULL, B is not
+ * set and the corresponding memory remains unchanged.
+ * @param[in]  C Next state matrix. Size (`num_states[k+1], num_states[k+1])`. If NULL, C is
+ * not set and the corresponding memory remains unchanged.
+ * @param[in]  D Next input matrix. Size (`num_states[k+1], num_inputs[k+1])`. If NULL, D is
+ * not set and the corresponding memory remains unchanged.
+ * @param[in]  k Time step at which to set the dynamics.
+ */
+void sparseLDL_setDynamics(struct ldl_Solver *solver, const ldl_float *A,
+                           const ldl_float *B, const ldl_float *C, const ldl_float *D,
+                           int k);
+
+/////////////////////////////////////////////
+// Constraints setters
+/////////////////////////////////////////////
+
+/**
+ * @brief
+ *
+ * @param solver
+ * @param E
+ * @param F
+ * @param g
+ * @param k
+ */
+void sparseLDL_setConstraint(struct ldl_Solver *solver, const ldl_float *E,
+                             const ldl_float *F, const ldl_float *g, int k);
 
 #ifdef __cplusplus
 }  // #extern "C"
