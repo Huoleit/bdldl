@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16.0)
-project(sparseLDL VERSION 0.1.0 LANGUAGES C ASM)
+project(bdldl VERSION 0.1.0 LANGUAGES C ASM)
 
 # ###########################
 # Fetch Dependencies
@@ -18,32 +18,27 @@ FetchContent_Declare(blasfeoPackage
 FetchContent_MakeAvailable(blasfeoPackage)
 
 # ###########################
-# sparseLDL configuration
+# bdldl configuration
 # ###########################
-option(SPARSE_LDL_USE_SINGLE_PRECISION "Use single precision floating point number" TRUE)
-
-if(${SPARSE_LDL_USE_SINGLE_PRECISION})
-  message(STATUS "Using single precision floats")
-else()
-  message(STATUS "Using double precision floats")
-endif()
+option(BDLDL_USE_SINGLE_PRECISION "Use single precision floating point number" OFF)
+message(STATUS "Using single precision floats - ${BDLDL_USE_SINGLE_PRECISION}")
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/configuration/sparseLDL_types.h.in
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/sparseLDL_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/configuration/bdldl_types.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/bdldl_types.h
 )
 
 # ############################
-# Build sparseLDL
+# Build bdldl
 # ############################
-add_library(sparseLDL
-  src/sparseLDL.c
+add_library(bdldl
+  src/bdldl.c
 )
-target_include_directories(sparseLDL
+target_include_directories(bdldl
   PUBLIC
   include
 )
-target_link_libraries(sparseLDL
+target_link_libraries(bdldl
   blasfeo
 )
 

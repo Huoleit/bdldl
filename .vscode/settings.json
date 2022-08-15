@@ -1,11 +1,10 @@
 {
   "files.associations": {
-    "ldl.h": "c",
     "blasfeo.h": "c",
-    "ldl_types.h": "c",
-    "sparseldl.h": "c",
-    "sparseldl_forwarddeclaration.h": "c",
-    "sparseldl_types.h": "c",
-    "sparseldl_forward_declaration.h": "c"
-  }
+    "bdldl.h": "c",
+    "bdldl_types.h": "c",
+  },
+  "cSpell.words": [
+    "bdldl"
+  ]
 }

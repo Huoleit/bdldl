@@ -1,4 +1,4 @@
-#include "sparseLDL/sparseLDL.h"
+#include "bdldl/bdldl.h"
 
 struct qp_size {
   int *nx;  // number of states

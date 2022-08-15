@@ -1,5 +1,5 @@
 /**
- * @file sparseLDL.h
+ * @file bdldl.h
  * @author Fu Zhengyu (zhengfuaj@gmail.com)
  * @brief
  * @version 0.1
@@ -13,7 +13,7 @@
 
 #include <stddef.h>
 
-#include "sparseLDL/sparseLDL_types.h"
+#include "bdldl/bdldl_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +32,7 @@ struct ldl_Solver;
 typedef enum {
   OK,
   ERROR,
-} sparseLDL_status;
+} bdldl_status;
 
 /////////////////////////////////////////////
 // Factorization & Solve
@@ -47,9 +47,8 @@ typedef enum {
  * @return Status of the factorization
  */
 
-sparseLDL_status sparseLDL_factor(struct ldl_Solver *solver,
-                                  const ldl_float primal_regularization,
-                                  const ldl_float dual_regularization);
+bdldl_status bdldl_factor(struct ldl_Solver *solver, const ldl_float primal_regularization,
+                          const ldl_float dual_regularization);
 
 /**
  * @brief Solve the KKT system (destructive)
@@ -58,7 +57,7 @@ sparseLDL_status sparseLDL_factor(struct ldl_Solver *solver,
  * @param[in, out] b Vector to solve for. The solution is stored in this vector.
  * @return Status of the solve
  */
-sparseLDL_status sparseLDL_solveInPlace(const struct ldl_Solver *solver, ldl_vector *b);
+bdldl_status bdldl_solveInPlace(const struct ldl_Solver *solver, ldl_vector *b);
 
 /**
  * Solve the KKT system (non destructive)
@@ -68,11 +67,11 @@ sparseLDL_status sparseLDL_solveInPlace(const struct ldl_Solver *solver, ldl_vec
  * @param[out] result solution vector
  * @return Status of the solve
  */
-sparseLDL_status sparseLDL_solve(const struct ldl_Solver *solver, const ldl_vector *b,
-                                 ldl_vector *result);
+bdldl_status bdldl_solve(const struct ldl_Solver *solver, const ldl_vector *b,
+                         ldl_vector *result);
 
 /////////////////////////////////////////////
-// sparseLDL solver
+// bdldl solver
 /////////////////////////////////////////////
 
 /**
@@ -87,9 +86,9 @@ sparseLDL_status sparseLDL_solve(const struct ldl_Solver *solver, const ldl_vect
  * entries is allocated; otherwise, memory for dense Q and R matrices is allocated.
  * @return size_t Required memory size
  */
-size_t sparseLDL_getRequiredMemorySize(const int *num_states, const int *num_inputs,
-                                       const int *num_constraints, int num_horizon,
-                                       ldl_bool use_diagonal_costs);
+size_t bdldl_getRequiredMemorySize(const int *num_states, const int *num_inputs,
+                                   const int *num_constraints, int num_horizon,
+                                   ldl_bool use_diagonal_costs);
 
 /**
  * (Allocate required memory &) map the solver to the given memory(or the internally
@@ -98,20 +97,20 @@ size_t sparseLDL_getRequiredMemorySize(const int *num_states, const int *num_inp
  * @param[in] num_states State dimension of every stage. Size `N + 1`
  * @param[in] num_inputs State dimension of every stage. Size `N + 1`
  * @param[in] num_constraints Constraint dimension of every stage. Size `N + 1`
- * @param[in] num_horizon Horizon length `N`. See \ref sparseLDL_getRequiredMemorySize for
- * details.
+ * @param[in] num_horizon Number of intermediate states `N`. See \ref
+ * bdldl_getRequiredMemorySize for details.
  * @param[in] use_diagonal_costs Use diagonal costs. If true, only memory for diagonal
  * entries is allocated; otherwise, memory for dense Q and R matrices is allocated.
  * @param[in] memory If NULL, required memory is allocated internally. User should call
- * \ref sparseLDL_freeSolver to free the allocated memory explicitly. If a valid memory
+ * \ref bdldl_freeSolver to free the allocated memory explicitly. If a valid memory
  * address, solver is mapped to this pre-allocated memory space. Users should manage the
  * memory on their own.
  * @return struct ldl_Solver* Pointer to the solver
  *
  */
-struct ldl_Solver *sparseLDL_newSolver(const int *num_states, const int *num_inputs,
-                                       const int *num_constraints, int num_horizon,
-                                       ldl_bool use_diagonal_costs, void *memory);
+struct ldl_Solver *bdldl_newSolver(const int *num_states, const int *num_inputs,
+                                   const int *num_constraints, int num_horizon,
+                                   ldl_bool use_diagonal_costs, void *memory);
 
 /**
  * Release the memory allocated by the solver and NULL all internal pointers.
@@ -119,7 +118,7 @@ struct ldl_Solver *sparseLDL_newSolver(const int *num_states, const int *num_inp
  * @param[in] solver Pointer to the solver
  * @return Status of the free operation
  */
-sparseLDL_status sparseLDL_freeSolver(struct ldl_Solver *solver);
+bdldl_status bdldl_freeSolver(struct ldl_Solver *solver);
 
 /////////////////////////////////////////////
 // Costs setters
@@ -137,8 +136,8 @@ sparseLDL_status sparseLDL_freeSolver(struct ldl_Solver *solver);
  * @param[in] k Time step at which to set the cost.
  * @return Status of the set operation
  */
-sparseLDL_status sparseLDL_setStateCosts(struct ldl_Solver *solver, const ldl_float *Q,
-                                         const ldl_float *q, int k);
+bdldl_status bdldl_setStateCosts(struct ldl_Solver *solver, const ldl_float *Q,
+                                 const ldl_float *q, int k);
 
 /**
  * @brief Set the quadratic and affine cost terms on the input for a single time step.
@@ -152,8 +151,8 @@ sparseLDL_status sparseLDL_setStateCosts(struct ldl_Solver *solver, const ldl_fl
  * @param[in] k Time step at which to set the cost.
  * @return Status of the set operation
  */
-sparseLDL_status sparseLDL_setInputCosts(struct ldl_Solver *solver, const ldl_float *R,
-                                         const ldl_float *r, int k);
+bdldl_status bdldl_setInputCosts(struct ldl_Solver *solver, const ldl_float *R,
+                                 const ldl_float *r, int k);
 
 /**
  * @brief Set the cross-term cost between the states and inputs.
@@ -163,8 +162,8 @@ sparseLDL_status sparseLDL_setInputCosts(struct ldl_Solver *solver, const ldl_fl
  * @param[in] k Time step at which to set the cost.
  * @return Status of the set operation
  */
-sparseLDL_status sparseLDL_setStateInputCosts(struct ldl_Solver *solver,
-                                              const ldl_float *Hux, int k);
+bdldl_status bdldl_setStateInputCosts(struct ldl_Solver *solver, const ldl_float *Hux,
+                                      int k);
 
 /////////////////////////////////////////////
 // Dynamics setters
@@ -185,9 +184,9 @@ sparseLDL_status sparseLDL_setStateInputCosts(struct ldl_Solver *solver,
  * @param[in]  k Time step at which to set the dynamics.
  * @return Status of the set operation
  */
-sparseLDL_status sparseLDL_setDynamics(struct ldl_Solver *solver, const ldl_float *A,
-                                       const ldl_float *B, const ldl_float *C,
-                                       const ldl_float *D, int k);
+bdldl_status bdldl_setDynamics(struct ldl_Solver *solver, const ldl_float *A,
+                               const ldl_float *B, const ldl_float *C, const ldl_float *D,
+                               int k);
 
 /////////////////////////////////////////////
 // Constraints setters
@@ -202,8 +201,8 @@ sparseLDL_status sparseLDL_setDynamics(struct ldl_Solver *solver, const ldl_floa
  * @param g
  * @param k
  */
-void sparseLDL_setConstraint(struct ldl_Solver *solver, const ldl_float *E,
-                             const ldl_float *F, const ldl_float *g, int k);
+void bdldl_setConstraint(struct ldl_Solver *solver, const ldl_float *E, const ldl_float *F,
+                         const ldl_float *g, int k);
 
 #ifdef __cplusplus
 }  // #extern "C"
