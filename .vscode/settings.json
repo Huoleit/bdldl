@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "blasfeo.h": "c",
+    "bdldl.h": "c",
+    "bdldl_types.h": "c",
+  },
+  "cSpell.words": [
+    "bdldl"
+  ]
+}

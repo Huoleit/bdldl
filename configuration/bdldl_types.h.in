@@ -1,0 +1,28 @@
+/**
+ * @file bdldl_types.h
+ * @author Fu Zhengyu (zhengfuaj@gmail.com)
+ * @brief
+ * @version 0.1
+ * @date 2022-08-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
+
+#pragma once
+
+#include <blasfeo.h>
+
+typedef char ldl_bool;
+
+#cmakedefine BDLDL_USE_SINGLE_PRECISION
+
+#if defined(BDLDL_USE_SINGLE_PRECISION)
+typedef float ldl_float;
+typedef struct blasfeo_smat ldl_matrix;
+typedef struct blasfeo_svec ldl_vector;
+#else
+typedef double ldl_float;
+typedef struct blasfeo_dmat ldl_matrix;
+typedef struct blasfeo_dvec ldl_vector;
+#endif
