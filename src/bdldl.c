@@ -42,4 +42,5 @@ struct ldl_Solver {
   struct qp_size *size;
   struct qp_size *data;
   struct ldl_workspace *ws;
+  ldl_bool useExternalMem;
 };

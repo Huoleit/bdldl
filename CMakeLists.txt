@@ -39,6 +39,7 @@ target_include_directories(bdldl
   include
 )
 target_link_libraries(bdldl
+  PUBLIC
   blasfeo
 )
 
