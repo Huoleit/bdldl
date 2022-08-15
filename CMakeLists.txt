@@ -51,6 +51,7 @@ target_link_libraries(sparseLDL
 # Documentation
 # #############################
 find_package(Doxygen)
+set(DOXYGEN_OUTPUT_DIRECTORY docs)
 
 doxygen_add_docs(doxygen
   include/ src/
